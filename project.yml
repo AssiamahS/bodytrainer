@@ -1,0 +1,77 @@
+name: BodyTrainer
+options:
+  bundleIdPrefix: com.assiamah
+  deploymentTarget:
+    iOS: "26.0"
+  xcodeVersion: "26.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: 1.0.0
+    CURRENT_PROJECT_VERSION: 1
+    DEVELOPMENT_TEAM: QGMAWHX827
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  BodyTrainer:
+    type: application
+    platform: iOS
+    sources:
+      - BodyTrainer
+      - Shared
+    dependencies:
+      - target: BodyTrainerWidgets
+    entitlements:
+      path: BodyTrainer/BodyTrainer.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+    info:
+      path: BodyTrainer/Info.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDisplayName: BodyTrainer
+        CFBundleIconName: AppIcon
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        ITSAppUsesNonExemptEncryption: false
+        NSSupportsLiveActivities: true
+        NSHealthShareUsageDescription: BodyTrainer reads your past weigh-ins from Health so your trend starts with real history.
+        NSHealthUpdateUsageDescription: BodyTrainer saves each weigh-in you log to Health as Body Weight.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.assiamah.bodytrainer
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+
+  BodyTrainerWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - BodyTrainerWidgets
+      - Shared
+    info:
+      path: BodyTrainerWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: BodyTrainer
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.assiamah.bodytrainer.widgets
+        SKIP_INSTALL: true
+        TARGETED_DEVICE_FAMILY: "1"
+
+schemes:
+  BodyTrainer:
+    build:
+      targets:
+        BodyTrainer: all
+        BodyTrainerWidgets: all
+    run:
+      config: Debug
