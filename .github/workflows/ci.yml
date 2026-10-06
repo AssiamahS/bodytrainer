@@ -71,6 +71,15 @@ jobs:
             -archivePath build/BodyTrainer.xcarchive \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             CURRENT_PROJECT_VERSION=$GITHUB_RUN_NUMBER
+      - name: Embed entitlements (ad hoc codesign, no cert)
+        run: |
+          # An unsigned archive carries NO entitlements, and exportArchive signs with
+          # whatever the binary declares — HealthKit silently vanished in build 1.
+          # Ad hoc ("-") signing embeds them without touching the cert cap.
+          APP=build/BodyTrainer.xcarchive/Products/Applications/BodyTrainer.app
+          codesign --force --sign - "$APP/PlugIns/BodyTrainerWidgets.appex"
+          codesign --force --sign - --entitlements BodyTrainer/BodyTrainer.entitlements "$APP"
+          codesign -d --entitlements - --xml "$APP" | plutil -p -
       - name: Export ad hoc IPA (cloud signing)
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
@@ -86,10 +95,12 @@ jobs:
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID"
           ls -la build/adhoc
-      - name: Show signed entitlements (HealthKit must be present)
+      - name: Gate - signed app must carry HealthKit
         run: |
           cd build/adhoc && unzip -q -o *.ipa
-          codesign -d --entitlements - --xml Payload/BodyTrainer.app | plutil -p - || true
+          codesign -d --entitlements - --xml Payload/BodyTrainer.app > ent.plist
+          plutil -p ent.plist
+          grep -q com.apple.developer.healthkit ent.plist || { echo "::error::HealthKit entitlement missing from signed app"; exit 1; }
       - name: Publish install page to GitHub Pages
         env:
           GH_TOKEN: ${{ github.token }}
